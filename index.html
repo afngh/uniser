@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Excel & CSV PIN Lookup</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --ink: #0f172a;
+            --mute: #64748b;
+            --line: #e2e8f0;
+            --acc: #2563eb;
+            --acc-hover: #1d4ed8;
+            --acc-subtle: #eff6ff;
+            --ok: #16a34a;
+            --ok-bg: #dcfce7;
+            --bad: #dc2626;
+            --bad-bg: #fee2e2;
+            --radius: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            padding: 24px 16px;
+        }
+
+        main {
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--line);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--acc-subtle);
+            color: var(--acc);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.01em;
+        }
+
+        .sub {
+            font-size: 13px;
+            color: var(--mute);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--mute);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+
+        .status-dot.active {
+            background: var(--ok);
+        }
+
+        .status-dot.loading {
+            background: var(--acc);
+            animation: pulse 1.2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--ink);
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: var(--mute);
+            margin-bottom: 20px;
+        }
+
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #ffffff;
+            color: var(--mute);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-btn:hover {
+            border-color: #cbd5e1;
+            color: var(--ink);
+            background: #f8fafc;
+        }
+
+        .tab-btn.active {
+            background: var(--acc-subtle);
+            border-color: var(--acc);
+            color: var(--acc);
+            font-weight: 600;
+        }
+
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius);
+            padding: 36px 20px;
+            text-align: center;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--acc);
+            background: var(--acc-subtle);
+        }
+
+        .drop-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 12px;
+            background: var(--acc-subtle);
+            color: var(--acc);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drop-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .drop-hint {
+            font-size: 13px;
+            color: var(--mute);
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+            margin: 14px 0 6px;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            color: var(--ink);
+            font: inherit;
+            font-size: 14px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--acc);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        textarea {
+            min-height: 120px;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 9px 18px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: var(--acc);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background: var(--acc-hover);
+        }
+
+        button.sec {
+            background: #ffffff;
+            color: var(--ink);
+            border-color: #cbd5e1;
+        }
+
+        button.sec:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        button.sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .config-box {
+            margin-top: 20px;
+            padding: 18px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        .file-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+
+        .err {
+            color: var(--bad);
+            background: var(--bad-bg);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        /* Stats & Summary */
+        .summary-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 16px 0 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stat-pills {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .pill.ok {
+            background: var(--ok-bg);
+            color: var(--ok);
+        }
+
+        .pill.bad {
+            background: var(--bad-bg);
+            color: var(--bad);
+        }
+
+        .pill.info {
+            background: var(--acc-subtle);
+            color: var(--acc);
+        }
+
+        /* Table */
+        .table-wrap {
+            overflow: auto;
+            max-height: 550px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border-bottom: 2px solid var(--line);
+            z-index: 2;
+        }
+
+        tr:hover td {
+            background: #f8fafc;
+        }
+
+        td.match-key {
+            font-weight: 600;
+            color: var(--acc);
+        }
+
+        /* Missing Chips */
+        .miss-box {
+            margin-top: 16px;
+            padding: 14px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+        }
+
+        .miss-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--bad);
+            margin-bottom: 8px;
+        }
+
+        .miss-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 13px;
+        }
+
+        .chip {
+            padding: 2px 8px;
+            background: #ffffff;
+            border: 1px solid #fca5a5;
+            border-radius: 4px;
+            color: var(--bad);
+        }
+
+        .hide {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">📊</div>
+                <div>
+                    <h1>Excel & CSV PIN Lookup</h1>
+                    <div class="sub">Fast in-memory search for spreadsheets</div>
+                </div>
+            </div>
+            <div class="status-pill" id="statusPill">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking status…</span>
+            </div>
+        </div>
+
+        <!-- SETUP CARD (Shown when no sheet selected or changing) -->
+        <section class="card hide" id="setupCard">
+            <div class="card-title">Select Data Source</div>
+            <div class="card-desc">Upload your Excel (.xlsx, .xls) or CSV file, or specify a local file path.</div>
+
+            <div class="tab-bar">
+                <button type="button" class="tab-btn active" id="tabUpload">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    Upload File
+                </button>
+                <button type="button" class="tab-btn" id="tabPath">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                    File Path
+                </button>
+            </div>
+
+            <!-- Upload Panel -->
+            <div id="panelUpload">
+                <div class="dropzone" id="dropzone">
+                    <div class="drop-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    </div>
+                    <div class="drop-title" id="uploadTitle">Click to browse or drag & drop file</div>
+                    <div class="drop-hint">Supports Excel (.xlsx, .xls) and CSV (.csv)</div>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.txt" style="display:none">
+                </div>
+            </div>
+
+            <!-- Path Panel -->
+            <div id="panelPath" class="hide">
+                <label for="pathInput">Local File Path</label>
+                <div class="btn-row" style="margin-top:0">
+                    <input type="text" id="pathInput" placeholder="C:\Data\pins.xlsx or sample.csv" style="flex:1">
+                    <button id="inspectBtn">Read File</button>
+                </div>
+                <div class="btn-row" style="margin-top: 8px">
+                    <button class="sec sm" id="useSampleBtn" type="button">Use sample.csv</button>
+                </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div class="err hide" id="setupErr"></div>
+
+            <!-- Configuration & Column Selector (Appears after file read/upload) -->
+            <div class="config-box hide" id="configBox">
+                <div class="file-badge" id="fileBadge">📄 File selected</div>
+                
+                <div id="sheetGroup" class="hide">
+                    <label for="sheetSelect">Select Sheet</label>
+                    <select id="sheetSelect"></select>
+                </div>
+
+                <label for="keySelect">Search Key Column (e.g. PIN, Phone, ID)</label>
+                <select id="keySelect"></select>
+
+                <div class="btn-row" style="margin-top:16px">
+                    <button id="startBtn">⚡ Load Sheet & Begin Lookup</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN SEARCH CARD -->
+        <section class="card hide" id="mainCard">
+            <div class="summary-bar" style="margin: 0 0 16px 0; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
+                <div>
+                    <div class="card-title" id="activeFileTitle">Data Sheet Active</div>
+                    <div class="sub" id="activeKeySub">Key Column: PIN</div>
+                </div>
+                <button class="sec sm" id="changeBtn">Change File</button>
+            </div>
+
+            <label for="searchInput">Paste PINs / IDs to Search (separated by line breaks, spaces, or commas)</label>
+            <textarea id="searchInput" placeholder="542446&#10;519773&#10;551751" autofocus></textarea>
+
+            <div class="summary-bar" id="sumBar">
+                <div class="stat-pills" id="statPills"></div>
+                <button class="sec sm hide" id="copyBtn">📋 Copy Results</button>
+            </div>
+
+            <div class="table-wrap hide" id="tableWrap">
+                <table id="resultsTable"></table>
+            </div>
+
+            <div class="miss-box hide" id="missBox">
+                <div class="miss-title">Items Not Found</div>
+                <div class="miss-chips" id="missChips"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const MAX_DISPLAY_ROWS = 3000;
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        async function api(url, body) {
+            const opts = body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {};
+            const res = await fetch(url, opts);
+            return res.json();
+        }
+
+        let ver = -1, cfg = null, lastResult = null, searchTimer = null, searchSeq = 0, currentPath = '';
+
+        // Tab Switching
+        function setTab(tab) {
+            $('tabUpload').classList.toggle('active', tab === 'upload');
+            $('tabPath').classList.toggle('active', tab === 'path');
+            $('panelUpload').classList.toggle('hide', tab !== 'upload');
+            $('panelPath').classList.toggle('hide', tab !== 'path');
+        }
+        $('tabUpload').onclick = () => setTab('upload');
+        $('tabPath').onclick = () => setTab('path');
+
+        // Drag & Drop / File Input
+        const dz = $('dropzone');
+        dz.onclick = () => $('fileInput').click();
+        dz.ondragover = e => { e.preventDefault(); dz.classList.add('dragover'); };
+        dz.ondragleave = () => dz.classList.remove('dragover');
+        dz.ondrop = e => {
+            e.preventDefault();
+            dz.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files[0]);
+        };
+        $('fileInput').onchange = () => {
+            if ($('fileInput').files.length) handleFileUpload($('fileInput').files[0]);
+        };
+
+        async function handleFileUpload(file) {
+            hideErr();
+            $('uploadTitle').textContent = `Uploading ${file.name}...`;
+            try {
+                const res = await fetch('/api/upload?name=' + encodeURIComponent(file.name), {
+                    method: 'POST',
+                    body: file
+                });
+                const r = await res.json();
+                $('uploadTitle').textContent = `Click to browse or drag & drop file`;
+                if (r.error) return showErr(r.error);
+                populateConfig(r);
+            } catch (e) {
+                $('uploadTitle').textContent = `Click to browse or drag & drop file`;
+                showErr('Upload failed: ' + e.message);
+            }
+        }
+
+        // Path Inspection
+        $('inspectBtn').onclick = () => inspectPath($('pathInput').value);
+        $('useSampleBtn').onclick = () => {
+            $('pathInput').value = 'sample.csv';
+            inspectPath('sample.csv');
+        };
+
+        async function inspectPath(pathVal) {
+            hideErr();
+            if (!pathVal.trim()) return showErr('Please enter a file path.');
+            const selectedSheet = $('sheetSelect').value;
+            let url = '/api/inspect?path=' + encodeURIComponent(pathVal.trim());
+            if (selectedSheet && !$('sheetGroup').classList.contains('hide')) {
+                url += '&sheet=' + encodeURIComponent(selectedSheet);
+            }
+            try {
+                const r = await api(url);
+                if (r.error) return showErr(r.error);
+                populateConfig(r);
+            } catch (e) {
+                showErr('Failed to inspect file path: ' + e.message);
+            }
+        }
+
+        $('sheetSelect').onchange = () => {
+            if (currentPath) inspectPath(currentPath);
+        };
+
+        function populateConfig(data) {
+            currentPath = data.path;
+            $('pathInput').value = data.path;
+            $('fileBadge').textContent = '📄 ' + (data.filename || data.path);
+
+            const shSelect = $('sheetSelect');
+            if (data.sheets && data.sheets.length > 0) {
+                shSelect.innerHTML = data.sheets.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+                $('sheetGroup').classList.remove('hide');
+            } else {
+                $('sheetGroup').classList.add('hide');
+            }
+
+            const keySelect = $('keySelect');
+            keySelect.innerHTML = data.headers.map(h => `<option value="${esc(h)}">${esc(h)}</option>`).join('');
+
+            $('configBox').classList.remove('hide');
+        }
+
+        // Start Configured Search
+        $('startBtn').onclick = async () => {
+            hideErr();
+            const sheetVal = $('sheetGroup').classList.contains('hide') ? null : $('sheetSelect').value;
+            const keyVal = $('keySelect').value;
+            if (!keyVal) return showErr('Please select a column key.');
+
+            const res = await api('/api/config', { path: currentPath, sheet: sheetVal, key: keyVal });
+            if (res.ok) {
+                ver = -1;
+                showSetup(false);
+                poll();
+            } else if (res.error) {
+                showErr(res.error);
+            }
+        };
+
+        $('changeBtn').onclick = () => {
+            showSetup(true);
+            if (cfg) {
+                currentPath = cfg.path;
+                $('pathInput').value = cfg.path;
+            }
+        };
+
+        function showErr(msg) {
+            $('setupErr').textContent = msg;
+            $('setupErr').classList.remove('hide');
+        }
+
+        function hideErr() {
+            $('setupErr').textContent = '';
+            $('setupErr').classList.add('hide');
+        }
+
+        function showSetup(isSetup) {
+            $('setupCard').classList.toggle('hide', !isSetup);
+            $('mainCard').classList.toggle('hide', isSetup);
+        }
+
+        // Search logic
+        function parseInput() {
+            return $('searchInput').value.split(/[\s,;]+/).filter(Boolean);
+        }
+
+        async function runSearch() {
+            const pins = parseInput();
+            const seq = ++searchSeq;
+
+            if (!pins.length) {
+                lastResult = null;
+                $('statPills').innerHTML = '';
+                ['tableWrap', 'copyBtn', 'missBox'].forEach(id => $(id).classList.add('hide'));
+                return;
+            }
+
+            const r = await api('/api/search', { pins });
+            if (seq !== searchSeq) return;
+            lastResult = r;
+
+            const foundCount = r.rows.length;
+            const missCount = r.missing.length;
+
+            let pillsHtml = `<span class="pill ok">${foundCount.toLocaleString()} Found</span>`;
+            if (missCount) pillsHtml += `<span class="pill bad">${missCount.toLocaleString()} Not Found</span>`;
+            if (foundCount > MAX_DISPLAY_ROWS) pillsHtml += `<span class="pill info">Showing first ${MAX_DISPLAY_ROWS.toLocaleString()}</span>`;
+            $('statPills').innerHTML = pillsHtml;
+
+            // Table setup
+            if (foundCount > 0) {
+                const headHtml = '<thead><tr>' + r.headers.map(h => `<th>${esc(h)}</th>`).join('') + '</tr></thead>';
+                const rowsHtml = '<tbody>' + r.rows.slice(0, MAX_DISPLAY_ROWS).map(row => {
+                    return '<tr>' + row.map((cell, idx) => {
+                        const isKey = r.headers[idx] === (cfg ? cfg.key : '');
+                        return `<td class="${isKey ? 'match-key' : ''}">${esc(cell)}</td>`;
+                    }).join('') + '</tr>';
+                }).join('') + '</tbody>';
+                $('resultsTable').innerHTML = headHtml + rowsHtml;
+                $('tableWrap').classList.remove('hide');
+                $('copyBtn').classList.remove('hide');
+            } else {
+                $('tableWrap').classList.add('hide');
+                $('copyBtn').classList.add('hide');
+            }
+
+            // Missing items
+            if (missCount > 0) {
+                $('missChips').innerHTML = r.missing.map(m => `<span class="chip">${esc(m)}</span>`).join('');
+                $('missBox').classList.remove('hide');
+            } else {
+                $('missBox').classList.add('hide');
+            }
+        }
+
+        $('searchInput').oninput = () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(runSearch, 120);
+        };
+
+        $('copyBtn').onclick = async () => {
+            if (!lastResult) return;
+            const text = [lastResult.headers, ...lastResult.rows].map(row => row.join('\t')).join('\n');
+            await navigator.clipboard.writeText(text);
+            $('copyBtn').textContent = '✓ Copied!';
+            setTimeout(() => { $('copyBtn').textContent = '📋 Copy Results'; }, 1500);
+        };
+
+        // Polling status
+        async function poll() {
+            try {
+                const s = await api('/api/status');
+                cfg = s.cfg;
+
+                const dot = $('statusDot');
+                const text = $('statusText');
+
+                if (!s.configured) {
+                    dot.className = 'status-dot';
+                    text.textContent = 'No sheet selected';
+                    if ($('setupCard').classList.contains('hide') && $('mainCard').classList.contains('hide')) {
+                        showSetup(true);
+                    }
+                } else {
+                    if (s.loading) {
+                        dot.className = 'status-dot loading';
+                        text.textContent = s.count ? 'Refreshing sheet…' : 'Loading spreadsheet…';
+                    } else if (s.error) {
+                        dot.className = 'status-dot';
+                        text.textContent = '⚠ ' + s.error;
+                    } else {
+                        dot.className = 'status-dot active';
+                        text.textContent = `${s.count.toLocaleString()} rows loaded · ${new Date(s.loaded_at * 1000).toLocaleTimeString()}`;
+                    }
+
+                    $('activeFileTitle').textContent = '📄 ' + (s.cfg.path.split(/[\\/]/).pop() || s.cfg.path);
+                    $('activeKeySub').textContent = `Search Column: ${s.cfg.key}` + (s.cfg.sheet ? ` (Sheet: ${s.cfg.sheet})` : '');
+
+                    if ($('mainCard').classList.contains('hide') && $('setupCard').classList.contains('hide')) {
+                        showSetup(false);
+                    }
+
+                    if (s.version !== ver && s.count > 0) {
+                        ver = s.version;
+                        runSearch();
+                    }
+                }
+            } catch (e) {
+                $('statusDot').className = 'status-dot';
+                $('statusText').textContent = 'Server disconnected';
+            }
+            setTimeout(poll, 1500);
+        }
+
+        poll();
+    </script>
+</body>
+
+</html>
