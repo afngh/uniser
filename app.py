@@ -25,6 +25,10 @@ def resolve_path(path):
     if not path:
         return path
     p = path.strip().strip("\"'")
+    filename = os.path.basename(p)
+    root_file = os.path.join(HERE, filename)
+    if os.path.exists(root_file):
+        return root_file
     if not os.path.isabs(p):
         rel = os.path.join(HERE, p)
         if os.path.exists(rel):
@@ -110,8 +114,47 @@ def watcher():
         prev = sig
 
 
-def search(pins):
-    idx, n = S["index"], len(S["headers"])
+CACHE = {}  # (path, sheet, key) -> {"sig": sig, "headers": hdr, "index": idx}
+
+
+def get_index_for(path, sheet=None, key=None):
+    path = resolve_path(path)
+    if not path or not os.path.exists(path):
+        raise ValueError(f"File path does not exist: {path}")
+    sig = stat_sig(path)
+    cache_key = (path, sheet or "", key or "")
+    cached = CACHE.get(cache_key)
+    if cached and cached["sig"] == sig:
+        return cached["headers"], cached["index"]
+
+    _, rows = read_table(path, sheet)
+    if not rows:
+        raise ValueError("File is empty or contains no rows.")
+    hdr = [norm(h) for h in rows[0]]
+    target_key = key if key and key in hdr else hdr[0]
+    ki = hdr.index(target_key)
+    idx = {}
+    for r in rows[1:]:
+        if ki < len(r):
+            k = norm(r[ki])
+            if k:
+                idx[k] = r
+    CACHE[cache_key] = {"sig": sig, "headers": hdr, "index": idx}
+    return hdr, idx
+
+
+def search(pins, path=None, sheet=None, key=None):
+    try:
+        if path and key:
+            hdr, idx = get_index_for(path, sheet, key)
+        elif S["cfg"]:
+            hdr, idx = get_index_for(S["cfg"]["path"], S["cfg"].get("sheet"), S["cfg"]["key"])
+        else:
+            hdr, idx = S["headers"], S["index"]
+    except Exception:
+        hdr, idx = S["headers"], S["index"]
+
+    n = len(hdr)
     rows, missing = [], []
     for p in dict.fromkeys(norm(x) for x in pins if norm(x)):
         r = idx.get(p)
@@ -119,7 +162,7 @@ def search(pins):
             missing.append(p)
         else:
             rows.append([norm(c) for c in r[:n]] + [""] * (n - len(r)))
-    return {"headers": S["headers"], "rows": rows, "missing": missing}
+    return {"headers": hdr, "rows": rows, "missing": missing}
 
 
 class H(BaseHTTPRequestHandler):
@@ -142,11 +185,21 @@ class H(BaseHTTPRequestHandler):
             return self.send({"configured": bool(S["cfg"]), "cfg": S["cfg"], "version": S["version"],
                               "count": len(S["index"]), "loaded_at": S["loaded_at"],
                               "loading": S["loading"], "error": S["error"]})
+        if u.path == "/api/reload":
+            CACHE.clear()
+            if S["cfg"]:
+                threading.Thread(target=load, daemon=True).start()
+            return self.send({"ok": True, "message": "Cache cleared and data reloaded."})
         if u.path == "/api/inspect":
             q = parse_qs(u.query)
             try:
                 raw_path = q["path"][0].strip()
                 path = resolve_path(raw_path)
+                # clear cache if force parameter passed
+                if q.get("force"):
+                    for k in list(CACHE.keys()):
+                        if k[0] == path:
+                            del CACHE[k]
                 sheets, rows = read_table(path, q.get("sheet", [None])[0])
                 if not rows:
                     return self.send({"error": "File is empty or contains no rows."}, 400)
@@ -164,8 +217,13 @@ class H(BaseHTTPRequestHandler):
             if not filename:
                 filename = "uploaded_file.xlsx"
 
-            os.makedirs(UPLOAD_DIR, exist_ok=True)
-            saved_path = os.path.join(UPLOAD_DIR, filename)
+            # Check if file exists in project root, otherwise save to uploads/
+            root_file = os.path.join(HERE, filename)
+            if os.path.exists(root_file):
+                saved_path = root_file
+            else:
+                os.makedirs(UPLOAD_DIR, exist_ok=True)
+                saved_path = os.path.join(UPLOAD_DIR, filename)
 
             content_len = int(self.headers.get("Content-Length", 0))
             if content_len == 0:
@@ -180,6 +238,11 @@ class H(BaseHTTPRequestHandler):
                             break
                         f.write(chunk)
                         bytes_left -= len(chunk)
+
+                # Clear cache for this path so fresh data is read
+                for k in list(CACHE.keys()):
+                    if k[0] == saved_path:
+                        del CACHE[k]
 
                 sheets, rows = read_table(saved_path)
                 if not rows:
@@ -204,7 +267,12 @@ class H(BaseHTTPRequestHandler):
             threading.Thread(target=load, daemon=True).start()
             return self.send({"ok": True})
         if self.path == "/api/search":
-            return self.send(search(body.get("pins", [])))
+            return self.send(search(
+                pins=body.get("pins", []),
+                path=body.get("path"),
+                sheet=body.get("sheet"),
+                key=body.get("key")
+            ))
         self.send({"error": "not found"}, 404)
 
 

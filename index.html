@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Excel & CSV PIN Lookup</title>
+    <title>Excel & CSV Certificate Lookup</title>
     <style>
         :root {
             --bg: #f8fafc;
@@ -12,6 +12,9 @@
             --ink: #0f172a;
             --mute: #64748b;
             --line: #e2e8f0;
+            --excel-green: #107c41;
+            --excel-green-hover: #0b5c30;
+            --excel-bg: #eff6ff;
             --acc: #2563eb;
             --acc-hover: #1d4ed8;
             --acc-subtle: #eff6ff;
@@ -20,6 +23,7 @@
             --bad: #dc2626;
             --bad-bg: #fee2e2;
             --radius: 10px;
+            --grid-line: #cbd5e1;
         }
 
         * {
@@ -32,21 +36,22 @@
             background-color: var(--bg);
             color: var(--ink);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            font-size: 15px;
+            font-size: 14px;
             line-height: 1.5;
             padding: 24px 16px;
         }
 
         main {
-            max-width: 1040px;
+            max-width: 1440px;
             margin: 0 auto;
         }
 
+        /* Header Bar */
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             padding-bottom: 16px;
             border-bottom: 1px solid var(--line);
             flex-wrap: wrap;
@@ -56,24 +61,25 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .brand-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--acc-subtle);
-            color: var(--acc);
+            width: 40px;
+            height: 40px;
+            background: #107c41;
+            color: #ffffff;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 20px;
+            box-shadow: 0 2px 4px rgba(16, 124, 65, 0.2);
         }
 
         h1 {
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 700;
             color: var(--ink);
             letter-spacing: -0.01em;
@@ -82,6 +88,13 @@
         .sub {
             font-size: 13px;
             color: var(--mute);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .status-pill {
@@ -119,156 +132,48 @@
             100% { opacity: 0.4; }
         }
 
-        .card {
-            background: var(--card);
+        /* Global Data Source Bar */
+        .source-bar {
+            background: #ffffff;
             border: 1px solid var(--line);
             border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
-        }
-
-        .card-title {
-            font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--ink);
-        }
-
-        .card-desc {
-            font-size: 14px;
-            color: var(--mute);
-            margin-bottom: 20px;
-        }
-
-        /* Tabs */
-        .tab-bar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--line);
-            padding-bottom: 12px;
-        }
-
-        .tab-btn {
-            padding: 8px 16px;
-            border: 1px solid var(--line);
-            border-radius: 6px;
-            background: #ffffff;
-            color: var(--mute);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            font-size: 14px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
-            gap: 6px;
-        }
-
-        .tab-btn:hover {
-            border-color: #cbd5e1;
-            color: var(--ink);
-            background: #f8fafc;
-        }
-
-        .tab-btn.active {
-            background: var(--acc-subtle);
-            border-color: var(--acc);
-            color: var(--acc);
-            font-weight: 600;
-        }
-
-        /* Dropzone */
-        .dropzone {
-            border: 2px dashed #cbd5e1;
-            border-radius: var(--radius);
-            padding: 36px 20px;
-            text-align: center;
-            background: #ffffff;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .dropzone:hover, .dropzone.dragover {
-            border-color: var(--acc);
-            background: var(--acc-subtle);
-        }
-
-        .drop-icon {
-            width: 44px;
-            height: 44px;
-            margin: 0 auto 12px;
-            background: var(--acc-subtle);
-            color: var(--acc);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .drop-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--ink);
-            margin-bottom: 4px;
-        }
-
-        .drop-hint {
-            font-size: 13px;
-            color: var(--mute);
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--ink);
-            margin: 14px 0 6px;
-        }
-
-        input[type="text"], select, textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            background: #ffffff;
-            color: var(--ink);
-            font: inherit;
-            font-size: 14px;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
-
-        input[type="text"]:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--acc);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-        }
-
-        textarea {
-            min-height: 120px;
-            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-            line-height: 1.6;
-            resize: vertical;
-        }
-
-        .btn-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-top: 10px;
+            justify-content: space-between;
             flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         }
 
+        .source-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .file-tag {
+            font-weight: 600;
+            color: var(--ink);
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Buttons */
         button {
-            padding: 9px 18px;
+            padding: 8px 16px;
             border: 1px solid transparent;
             border-radius: 6px;
             background: var(--acc);
             color: #ffffff;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
-            transition: background-color 0.15s;
+            transition: all 0.15s ease;
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -276,6 +181,15 @@
 
         button:hover {
             background: var(--acc-hover);
+        }
+
+        button.excel-btn {
+            background: var(--excel-green);
+            color: #ffffff;
+        }
+
+        button.excel-btn:hover {
+            background: var(--excel-green-hover);
         }
 
         button.sec {
@@ -289,63 +203,254 @@
             border-color: #94a3b8;
         }
 
-        button.sm {
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-
-        .config-box {
-            margin-top: 20px;
-            padding: 18px;
-            background: #f8fafc;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-        }
-
-        .file-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--ink);
-            margin-bottom: 12px;
-            word-break: break-all;
-        }
-
-        .err {
+        button.danger {
+            background: #ffffff;
             color: var(--bad);
-            background: var(--bad-bg);
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-top: 12px;
+            border-color: #fca5a5;
         }
 
-        /* Stats & Summary */
-        .summary-bar {
+        button.danger:hover {
+            background: #fef2f2;
+        }
+
+        button.sm {
+            padding: 5px 11px;
+            font-size: 12px;
+        }
+
+        /* Card Container */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 22px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+        }
+
+        /* Setup Section */
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 7px 14px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #ffffff;
+            color: var(--mute);
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .tab-btn.active {
+            background: var(--acc-subtle);
+            border-color: var(--acc);
+            color: var(--acc);
+            font-weight: 600;
+        }
+
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius);
+            padding: 30px 20px;
+            text-align: center;
+            background: #ffffff;
+            cursor: pointer;
+        }
+
+        .dropzone:hover {
+            border-color: var(--acc);
+            background: var(--acc-subtle);
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            color: var(--ink);
+            font: inherit;
+            font-size: 13px;
+        }
+
+        textarea {
+            min-height: 100px;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
+        #sessionsContainer {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 960px) {
+            #sessionsContainer {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sessions Section */
+        .session-card {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            margin-bottom: 0;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+            transition: border-color 0.2s;
+        }
+
+        .session-card:focus-within {
+            border-color: var(--acc);
+        }
+
+        .session-header {
+            background: #f8fafc;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--line);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 16px 0 12px;
+            gap: 12px;
             flex-wrap: wrap;
+        }
+
+        .session-title-group {
+            display: flex;
+            align-items: center;
             gap: 10px;
         }
 
-        .stat-pills {
-            display: flex;
-            gap: 8px;
-            align-items: center;
+        .session-icon {
+            font-size: 18px;
         }
 
+        .session-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ink);
+            border: 1px transparent solid;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .session-title:hover {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            cursor: text;
+        }
+
+        .session-body {
+            padding: 18px;
+        }
+
+        /* Excel Spreadsheet Table Styling */
+        .excel-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 14px 0 10px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .excel-table-wrap {
+            overflow: auto;
+            max-height: 480px;
+            border: 1px solid var(--grid-line);
+            border-radius: 6px;
+            background: #ffffff;
+            margin-top: 10px;
+        }
+
+        table.excel-grid {
+            border-collapse: collapse;
+            width: 100%;
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        table.excel-grid th, table.excel-grid td {
+            border: 1px solid var(--grid-line);
+            padding: 6px 10px;
+            white-space: nowrap;
+        }
+
+        /* Excel Column Letters Row (A, B, C...) */
+        table.excel-grid tr.col-letters th {
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            padding: 3px;
+            border-bottom: 1px solid var(--grid-line);
+            user-select: none;
+        }
+
+        /* Excel Data Header Row */
+        table.excel-grid tr.data-header th {
+            background: #f8fafc;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        /* Excel Row Numbers Column (1, 2, 3...) */
+        table.excel-grid td.row-num {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            width: 40px;
+            min-width: 40px;
+            user-select: none;
+            border-right: 2px solid #cbd5e1;
+        }
+
+        table.excel-grid td.cell-data {
+            color: #0f172a;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        table.excel-grid td.cell-data:hover {
+            background: #eff6ff;
+        }
+
+        table.excel-grid td.cell-key {
+            font-weight: 600;
+            color: var(--excel-green);
+            background: #f0fdf4;
+        }
+
+        /* Stats Pills */
         .pill {
             padding: 4px 10px;
             border-radius: 12px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .pill.ok {
@@ -358,69 +463,12 @@
             color: var(--bad);
         }
 
-        .pill.info {
-            background: var(--acc-subtle);
-            color: var(--acc);
-        }
-
-        /* Table */
-        .table-wrap {
-            overflow: auto;
-            max-height: 550px;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: #ffffff;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            font-size: 14px;
-            text-align: left;
-        }
-
-        th, td {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--line);
-            white-space: nowrap;
-        }
-
-        th {
-            position: sticky;
-            top: 0;
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            border-bottom: 2px solid var(--line);
-            z-index: 2;
-        }
-
-        tr:hover td {
-            background: #f8fafc;
-        }
-
-        td.match-key {
-            font-weight: 600;
-            color: var(--acc);
-        }
-
-        /* Missing Chips */
         .miss-box {
-            margin-top: 16px;
-            padding: 14px;
+            margin-top: 14px;
+            padding: 12px;
             background: #fef2f2;
             border: 1px solid #fecaca;
-            border-radius: 8px;
-        }
-
-        .miss-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--bad);
-            margin-bottom: 8px;
+            border-radius: 6px;
         }
 
         .miss-chips {
@@ -428,15 +476,32 @@
             flex-wrap: wrap;
             gap: 6px;
             font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-            font-size: 13px;
+            font-size: 12px;
+            margin-top: 6px;
         }
 
         .chip {
-            padding: 2px 8px;
+            padding: 2px 7px;
             background: #ffffff;
             border: 1px solid #fca5a5;
             border-radius: 4px;
             color: var(--bad);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 999;
+            transition: opacity 0.2s;
         }
 
         .hide {
@@ -447,114 +512,112 @@
 
 <body>
     <main>
+        <!-- Header -->
         <div class="header">
             <div class="brand">
                 <div class="brand-icon">📊</div>
                 <div>
-                    <h1>Excel & CSV PIN Lookup</h1>
-                    <div class="sub">Fast in-memory search for spreadsheets</div>
+                    <h1>Excel & CSV Certificate Lookup</h1>
+                    <div class="sub">Multi-session spreadsheet search for OD, Provisional & Custom Certificates</div>
                 </div>
             </div>
-            <div class="status-pill" id="statusPill">
-                <span class="status-dot" id="statusDot"></span>
-                <span id="statusText">Checking status…</span>
+            <div class="top-actions">
+                <button class="excel-btn" id="addSessionTopBtn">➕ Add Session</button>
+                <div class="status-pill">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Checking status…</span>
+                </div>
             </div>
         </div>
 
-        <!-- SETUP CARD (Shown when no sheet selected or changing) -->
+        <!-- Global Source Bar -->
+        <div class="source-bar" id="sourceBar">
+            <div class="source-info">
+                <span>Active File:</span>
+                <span class="file-tag" id="activeFileTag">No file loaded</span>
+                <span class="sub" id="activeKeyTag">Search Column: PIN</span>
+            </div>
+            <button class="sec sm" id="changeSourceBtn">⚙️ Change Data Source</button>
+        </div>
+
+        <!-- Setup Card (Shown when configuring data source) -->
         <section class="card hide" id="setupCard">
-            <div class="card-title">Select Data Source</div>
-            <div class="card-desc">Upload your Excel (.xlsx, .xls) or CSV file, or specify a local file path.</div>
+            <h2 style="font-size: 16px; margin-bottom: 6px;">Select Data Source Spreadsheet</h2>
+            <div class="sub" style="margin-bottom: 16px;">Upload an Excel/CSV file or enter a local file path.</div>
 
             <div class="tab-bar">
-                <button type="button" class="tab-btn active" id="tabUpload">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    Upload File
-                </button>
-                <button type="button" class="tab-btn" id="tabPath">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-                    File Path
-                </button>
+                <button type="button" class="tab-btn active" id="tabUpload">📤 Upload File</button>
+                <button type="button" class="tab-btn" id="tabPath">📁 File Path</button>
             </div>
 
             <!-- Upload Panel -->
             <div id="panelUpload">
                 <div class="dropzone" id="dropzone">
-                    <div class="drop-icon">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                    </div>
-                    <div class="drop-title" id="uploadTitle">Click to browse or drag & drop file</div>
-                    <div class="drop-hint">Supports Excel (.xlsx, .xls) and CSV (.csv)</div>
+                    <div style="font-weight: 600; font-size: 14px;" id="uploadTitle">Click to browse or drag & drop file</div>
+                    <div class="sub" style="margin-top: 4px;">Supports Excel (.xlsx, .xls) and CSV (.csv)</div>
                     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.txt" style="display:none">
                 </div>
             </div>
 
             <!-- Path Panel -->
             <div id="panelPath" class="hide">
-                <label for="pathInput">Local File Path</label>
-                <div class="btn-row" style="margin-top:0">
-                    <input type="text" id="pathInput" placeholder="C:\Data\pins.xlsx or sample.csv" style="flex:1">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="pathInput" placeholder="C:\Data\certificates.xlsx or sample.csv" style="flex:1">
                     <button id="inspectBtn">Read File</button>
                 </div>
-                <div class="btn-row" style="margin-top: 8px">
+                <div style="margin-top: 8px;">
                     <button class="sec sm" id="useSampleBtn" type="button">Use sample.csv</button>
                 </div>
             </div>
 
-            <!-- Error Banner -->
-            <div class="err hide" id="setupErr"></div>
+            <div class="hide" id="setupErr" style="color: var(--bad); background: var(--bad-bg); padding: 8px 12px; border-radius: 6px; margin-top: 10px; font-size: 13px;"></div>
 
-            <!-- Configuration & Column Selector (Appears after file read/upload) -->
-            <div class="config-box hide" id="configBox">
-                <div class="file-badge" id="fileBadge">📄 File selected</div>
+            <!-- Column & Sheet Config Box -->
+            <div class="hide" id="configBox" style="margin-top: 16px; padding: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px;">
+                <div class="file-tag" id="configBadge" style="margin-bottom: 10px;">📄 File ready</div>
                 
-                <div id="sheetGroup" class="hide">
-                    <label for="sheetSelect">Select Sheet</label>
+                <div id="sheetGroup" class="hide" style="margin-bottom: 10px;">
+                    <label style="font-weight:600; font-size:12px; display:block; margin-bottom:4px;">Sheet</label>
                     <select id="sheetSelect"></select>
                 </div>
 
-                <label for="keySelect">Search Key Column (e.g. PIN, Phone, ID)</label>
+                <label style="font-weight:600; font-size:12px; display:block; margin-bottom:4px;">Default Search Column Key (e.g. PIN, HallTicket, StudentID)</label>
                 <select id="keySelect"></select>
 
-                <div class="btn-row" style="margin-top:16px">
-                    <button id="startBtn">⚡ Load Sheet & Begin Lookup</button>
+                <div style="margin-top: 14px;">
+                    <button class="excel-btn" id="startBtn">⚡ Save & Load Spreadsheet</button>
                 </div>
             </div>
         </section>
 
-        <!-- MAIN SEARCH CARD -->
-        <section class="card hide" id="mainCard">
-            <div class="summary-bar" style="margin: 0 0 16px 0; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
-                <div>
-                    <div class="card-title" id="activeFileTitle">Data Sheet Active</div>
-                    <div class="sub" id="activeKeySub">Key Column: PIN</div>
-                </div>
-                <button class="sec sm" id="changeBtn">Change File</button>
-            </div>
+        <!-- SESSIONS CONTAINER -->
+        <div id="sessionsContainer"></div>
 
-            <label for="searchInput">Paste PINs / IDs to Search (separated by line breaks, spaces, or commas)</label>
-            <textarea id="searchInput" placeholder="542446&#10;519773&#10;551751" autofocus></textarea>
-
-            <div class="summary-bar" id="sumBar">
-                <div class="stat-pills" id="statPills"></div>
-                <button class="sec sm hide" id="copyBtn">📋 Copy Results</button>
-            </div>
-
-            <div class="table-wrap hide" id="tableWrap">
-                <table id="resultsTable"></table>
-            </div>
-
-            <div class="miss-box hide" id="missBox">
-                <div class="miss-title">Items Not Found</div>
-                <div class="miss-chips" id="missChips"></div>
-            </div>
-        </section>
+        <!-- Bottom Add Session Bar -->
+        <div style="text-align: center; margin: 20px 0 40px;">
+            <button class="sec" id="addSessionBottomBtn" style="padding: 10px 24px; font-size: 14px;">
+                ➕ Add Another Certificate Search Session
+            </button>
+        </div>
     </main>
+
+    <!-- Toast Element -->
+    <div class="toast hide" id="toast">Copied to clipboard!</div>
 
     <script>
         const $ = id => document.getElementById(id);
         const MAX_DISPLAY_ROWS = 3000;
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        // Generate Excel column letters (A, B, C ... Z, AA, AB...)
+        function getColLetter(n) {
+            let s = '';
+            while (n >= 0) {
+                s = String.fromCharCode((n % 26) + 65) + s;
+                n = Math.floor(n / 26) - 1;
+            }
+            return s;
+        }
 
         async function api(url, body) {
             const opts = body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {};
@@ -562,9 +625,23 @@
             return res.json();
         }
 
-        let ver = -1, cfg = null, lastResult = null, searchTimer = null, searchSeq = 0, currentPath = '';
+        function showToast(msg) {
+            const t = $('toast');
+            t.textContent = msg;
+            t.classList.remove('hide');
+            setTimeout(() => t.classList.add('hide'), 2000);
+        }
 
-        // Tab Switching
+        let globalCfg = null;
+        let currentPath = '';
+
+        // Sessions list
+        let sessions = [
+            { id: 'sess_od', title: 'OD Certificate', icon: '📜', input: '', result: null, collapsed: false },
+            { id: 'sess_prov', title: 'Provisional Certificate', icon: '🎓', input: '', result: null, collapsed: false }
+        ];
+
+        // Tab Switching in Setup
         function setTab(tab) {
             $('tabUpload').classList.toggle('active', tab === 'upload');
             $('tabPath').classList.toggle('active', tab === 'path');
@@ -574,14 +651,12 @@
         $('tabUpload').onclick = () => setTab('upload');
         $('tabPath').onclick = () => setTab('path');
 
-        // Drag & Drop / File Input
+        // Drag & Drop / File Upload
         const dz = $('dropzone');
         dz.onclick = () => $('fileInput').click();
-        dz.ondragover = e => { e.preventDefault(); dz.classList.add('dragover'); };
-        dz.ondragleave = () => dz.classList.remove('dragover');
+        dz.ondragover = e => { e.preventDefault(); };
         dz.ondrop = e => {
             e.preventDefault();
-            dz.classList.remove('dragover');
             if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files[0]);
         };
         $('fileInput').onchange = () => {
@@ -592,10 +667,7 @@
             hideErr();
             $('uploadTitle').textContent = `Uploading ${file.name}...`;
             try {
-                const res = await fetch('/api/upload?name=' + encodeURIComponent(file.name), {
-                    method: 'POST',
-                    body: file
-                });
+                const res = await fetch('/api/upload?name=' + encodeURIComponent(file.name), { method: 'POST', body: file });
                 const r = await res.json();
                 $('uploadTitle').textContent = `Click to browse or drag & drop file`;
                 if (r.error) return showErr(r.error);
@@ -630,14 +702,10 @@
             }
         }
 
-        $('sheetSelect').onchange = () => {
-            if (currentPath) inspectPath(currentPath);
-        };
-
         function populateConfig(data) {
             currentPath = data.path;
             $('pathInput').value = data.path;
-            $('fileBadge').textContent = '📄 ' + (data.filename || data.path);
+            $('configBadge').textContent = '📄 ' + (data.filename || data.path);
 
             const shSelect = $('sheetSelect');
             if (data.sheets && data.sheets.length > 0) {
@@ -649,11 +717,9 @@
 
             const keySelect = $('keySelect');
             keySelect.innerHTML = data.headers.map(h => `<option value="${esc(h)}">${esc(h)}</option>`).join('');
-
             $('configBox').classList.remove('hide');
         }
 
-        // Start Configured Search
         $('startBtn').onclick = async () => {
             hideErr();
             const sheetVal = $('sheetGroup').classList.contains('hide') ? null : $('sheetSelect').value;
@@ -662,142 +728,381 @@
 
             const res = await api('/api/config', { path: currentPath, sheet: sheetVal, key: keyVal });
             if (res.ok) {
-                ver = -1;
-                showSetup(false);
+                $('setupCard').classList.add('hide');
                 poll();
+                runAllSessions();
             } else if (res.error) {
                 showErr(res.error);
             }
         };
 
-        $('changeBtn').onclick = () => {
-            showSetup(true);
-            if (cfg) {
-                currentPath = cfg.path;
-                $('pathInput').value = cfg.path;
+        $('changeSourceBtn').onclick = () => {
+            $('setupCard').classList.toggle('hide');
+            if (globalCfg) {
+                currentPath = globalCfg.path;
+                $('pathInput').value = globalCfg.path;
             }
         };
 
-        function showErr(msg) {
-            $('setupErr').textContent = msg;
-            $('setupErr').classList.remove('hide');
+        function showErr(msg) { $('setupErr').textContent = msg; $('setupErr').classList.remove('hide'); }
+        function hideErr() { $('setupErr').textContent = ''; $('setupErr').classList.add('hide'); }
+
+        // Render Sessions UI
+        function renderSessions() {
+            const container = $('sessionsContainer');
+            container.innerHTML = sessions.map((sess, idx) => `
+                <div class="session-card" id="card_${sess.id}">
+                    <div class="session-header">
+                        <div class="session-title-group">
+                            <span class="session-icon">${sess.icon}</span>
+                            <span class="session-title" contenteditable="true" onblur="updateSessionTitle('${sess.id}', this.textContent)" title="Click to edit title">${esc(sess.title)}</span>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button class="sec sm" onclick="toggleSession('${sess.id}')">${sess.collapsed ? '▶ Expand' : '▼ Collapse'}</button>
+                            ${sessions.length > 1 ? `<button class="danger sm" onclick="removeSession('${sess.id}')">🗑️ Remove</button>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Per-Section File Upload & Data Source Bar -->
+                    <div style="background:#f8fafc; padding:10px 14px; border-bottom:1px solid var(--line); font-size:12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <span class="file-tag" id="fileTag_${sess.id}">${sess.filename ? '📄 ' + esc(sess.filename) : (sess.path ? '📄 ' + esc(sess.path.split(/[\\/]/).pop()) : '📄 Main Spreadsheet')}</span>
+                            ${sess.sheets && sess.sheets.length > 0 ? `
+                                <select style="padding:3px 6px; font-size:12px; width:auto;" onchange="onSessionSheetChange('${sess.id}', this.value)">
+                                    ${sess.sheets.map(s => `<option value="${esc(s)}" ${s === sess.sheet ? 'selected' : ''}>Sheet: ${esc(s)}</option>`).join('')}
+                                </select>
+                            ` : ''}
+                            ${sess.headers && sess.headers.length > 0 ? `
+                                <select style="padding:3px 6px; font-size:12px; width:auto;" onchange="onSessionKeyChange('${sess.id}', this.value)">
+                                    ${sess.headers.map(h => `<option value="${esc(h)}" ${h === sess.key ? 'selected' : ''}>Key: ${esc(h)}</option>`).join('')}
+                                </select>
+                            ` : ''}
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <input type="file" id="fileInput_${sess.id}" accept=".xlsx,.xls,.csv,.txt" style="display:none" onchange="if(this.files.length) uploadSessionFile('${sess.id}', this.files[0])">
+                            <button class="excel-btn sm" onclick="$('fileInput_${sess.id}').click()">📤 Upload File</button>
+                            <button class="sec sm" onclick="promptSessionPath('${sess.id}')" title="Set local file path on PC for live auto-updating">📁 File Path</button>
+                            <button class="sec sm" onclick="refreshSessionData('${sess.id}')" title="Force reload data from disk">🔄 Refresh</button>
+                        </div>
+                    </div>
+
+                    <div class="session-body ${sess.collapsed ? 'hide' : ''}">
+                        <label style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">
+                            Paste PINs / Hall Ticket Numbers for ${esc(sess.title)} (separated by line, space, or comma)
+                        </label>
+                        <textarea id="input_${sess.id}" placeholder="e.g.\n542446\n519773\n551751" oninput="onSessionInput('${sess.id}')">${esc(sess.input)}</textarea>
+
+                        <div class="excel-toolbar">
+                            <div id="stats_${sess.id}"></div>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button class="excel-btn sm hide" id="copyExcel_${sess.id}" onclick="copySessionExcel('${sess.id}')">📋 Copy Excel Data</button>
+                                <button class="sec sm hide" id="downloadCsv_${sess.id}" onclick="downloadSessionCsv('${sess.id}')">📥 Download CSV</button>
+                                <button class="sec sm hide" id="copyMiss_${sess.id}" onclick="copySessionMissing('${sess.id}')">📋 Copy Not Found List</button>
+                            </div>
+                        </div>
+
+                        <!-- Excel Spreadsheet Grid View -->
+                        <div class="excel-table-wrap hide" id="wrap_${sess.id}">
+                            <table class="excel-grid" id="grid_${sess.id}"></table>
+                        </div>
+
+                        <!-- Missing Box -->
+                        <div class="miss-box hide" id="missBox_${sess.id}">
+                            <div style="font-weight:600; color:var(--bad); font-size:12px;">Items Not Found in ${esc(sess.title)}</div>
+                            <div class="miss-chips" id="missChips_${sess.id}"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Restore search results if available
+            sessions.forEach(sess => {
+                if (sess.result) renderSessionResult(sess.id, sess.result);
+            });
         }
 
-        function hideErr() {
-            $('setupErr').textContent = '';
-            $('setupErr').classList.add('hide');
+        // Per-Session Upload & Path Handlers
+        async function uploadSessionFile(id, file) {
+            const sess = sessions.find(s => s.id === id);
+            if (!sess) return;
+            try {
+                showToast(`Uploading ${file.name} for ${sess.title}...`);
+                const res = await fetch('/api/upload?name=' + encodeURIComponent(file.name), { method: 'POST', body: file });
+                const r = await res.json();
+                if (r.error) return alert('Upload error: ' + r.error);
+                
+                sess.path = r.path;
+                sess.filename = r.filename || file.name;
+                sess.sheets = r.sheets || [];
+                sess.headers = r.headers || [];
+                sess.sheet = r.sheets.length ? r.sheets[0] : null;
+                sess.key = r.headers.length ? r.headers[0] : 'PIN';
+
+                renderSessions();
+                if (sess.input.trim()) runSessionSearch(id);
+                showToast(`✓ Loaded ${file.name} for ${sess.title}!`);
+            } catch (e) {
+                alert('Failed to upload file: ' + e.message);
+            }
         }
 
-        function showSetup(isSetup) {
-            $('setupCard').classList.toggle('hide', !isSetup);
-            $('mainCard').classList.toggle('hide', isSetup);
+        async function promptSessionPath(id) {
+            const sess = sessions.find(s => s.id === id);
+            if (!sess) return;
+            const pathVal = prompt(`Enter local Excel/CSV file path for ${sess.title}:`, sess.path || 'sample.csv');
+            if (!pathVal || !pathVal.trim()) return;
+
+            try {
+                const r = await api('/api/inspect?path=' + encodeURIComponent(pathVal.trim()));
+                if (r.error) return alert('Path error: ' + r.error);
+
+                sess.path = r.path;
+                sess.filename = r.path.split(/[\\/]/).pop();
+                sess.sheets = r.sheets || [];
+                sess.headers = r.headers || [];
+                sess.sheet = r.sheets.length ? r.sheets[0] : null;
+                sess.key = r.headers.length ? r.headers[0] : 'PIN';
+
+                renderSessions();
+                if (sess.input.trim()) runSessionSearch(id);
+                showToast(`✓ Loaded ${sess.filename} for ${sess.title}!`);
+            } catch (e) {
+                alert('Failed to inspect path: ' + e.message);
+            }
         }
 
-        // Search logic
-        function parseInput() {
-            return $('searchInput').value.split(/[\s,;]+/).filter(Boolean);
+        async function refreshSessionData(id) {
+            const sess = sessions.find(s => s.id === id);
+            if (!sess) return;
+            const targetPath = sess.path || (globalCfg ? globalCfg.path : null);
+            if (!targetPath) return alert('No file loaded to refresh.');
+
+            try {
+                showToast(`Refreshing data for ${sess.title}...`);
+                await api('/api/reload');
+                const r = await api('/api/inspect?force=1&path=' + encodeURIComponent(targetPath));
+                if (r.error) return alert('Refresh error: ' + r.error);
+
+                sess.sheets = r.sheets || [];
+                sess.headers = r.headers || [];
+                sess.result = null;
+                renderSessions();
+                if (sess.input.trim()) {
+                    await runSessionSearch(id);
+                }
+                showToast(`✓ Refreshed ${sess.title} data from disk!`);
+            } catch (e) {
+                alert('Failed to refresh data: ' + e.message);
+            }
         }
 
-        async function runSearch() {
-            const pins = parseInput();
-            const seq = ++searchSeq;
+        function onSessionSheetChange(id, sheetVal) {
+            const sess = sessions.find(s => s.id === id);
+            if (sess) {
+                sess.sheet = sheetVal;
+                if (sess.input.trim()) runSessionSearch(id);
+            }
+        }
+
+        function onSessionKeyChange(id, keyVal) {
+            const sess = sessions.find(s => s.id === id);
+            if (sess) {
+                sess.key = keyVal;
+                if (sess.input.trim()) runSessionSearch(id);
+            }
+        }
+
+        function updateSessionTitle(id, newTitle) {
+            const sess = sessions.find(s => s.id === id);
+            if (sess && newTitle.trim()) sess.title = newTitle.trim();
+        }
+
+        function toggleSession(id) {
+            const sess = sessions.find(s => s.id === id);
+            if (sess) { sess.collapsed = !sess.collapsed; renderSessions(); }
+        }
+
+        function removeSession(id) {
+            if (confirm('Are you sure you want to remove this search session?')) {
+                sessions = sessions.filter(s => s.id !== id);
+                renderSessions();
+            }
+        }
+
+        function addSession() {
+            const title = prompt('Enter Certificate Session Name:', 'Consolidated Marks Memo');
+            if (!title || !title.trim()) return;
+            const newSess = {
+                id: 'sess_' + Date.now(),
+                title: title.trim(),
+                icon: '📜',
+                path: '',
+                filename: '',
+                sheets: [],
+                headers: [],
+                input: '',
+                result: null,
+                collapsed: false
+            };
+            sessions.push(newSess);
+            renderSessions();
+        }
+
+        $('addSessionTopBtn').onclick = addSession;
+        $('addSessionBottomBtn').onclick = addSession;
+
+        // Session Input Handler
+        const searchTimers = {};
+        function onSessionInput(id) {
+            const sess = sessions.find(s => s.id === id);
+            if (sess) sess.input = $(`input_${id}`).value;
+            clearTimeout(searchTimers[id]);
+            searchTimers[id] = setTimeout(() => runSessionSearch(id), 120);
+        }
+
+        async function runSessionSearch(id) {
+            const sess = sessions.find(s => s.id === id);
+            if (!sess) return;
+            const pins = sess.input.split(/[\s,;]+/).filter(Boolean);
 
             if (!pins.length) {
-                lastResult = null;
-                $('statPills').innerHTML = '';
-                ['tableWrap', 'copyBtn', 'missBox'].forEach(id => $(id).classList.add('hide'));
+                sess.result = null;
+                $(`stats_${id}`).innerHTML = '';
+                [`wrap_${id}`, `copyExcel_${id}`, `downloadCsv_${id}`, `copyMiss_${id}`, `missBox_${id}`].forEach(i => $(i)?.classList.add('hide'));
                 return;
             }
 
-            const r = await api('/api/search', { pins });
-            if (seq !== searchSeq) return;
-            lastResult = r;
+            const payload = { pins };
+            if (sess.path) {
+                payload.path = sess.path;
+                if (sess.sheet) payload.sheet = sess.sheet;
+                if (sess.key) payload.key = sess.key;
+            }
 
+            const r = await api('/api/search', payload);
+            sess.result = r;
+            renderSessionResult(id, r);
+        }
+
+        function renderSessionResult(id, r) {
             const foundCount = r.rows.length;
             const missCount = r.missing.length;
 
-            let pillsHtml = `<span class="pill ok">${foundCount.toLocaleString()} Found</span>`;
-            if (missCount) pillsHtml += `<span class="pill bad">${missCount.toLocaleString()} Not Found</span>`;
-            if (foundCount > MAX_DISPLAY_ROWS) pillsHtml += `<span class="pill info">Showing first ${MAX_DISPLAY_ROWS.toLocaleString()}</span>`;
-            $('statPills').innerHTML = pillsHtml;
+            let statsHtml = `<span class="pill ok">${foundCount.toLocaleString()} Found</span>`;
+            if (missCount) statsHtml += ` <span class="pill bad">${missCount.toLocaleString()} Not Found</span>`;
+            if (foundCount > MAX_DISPLAY_ROWS) statsHtml += ` <span class="pill" style="background:#e0f2fe;color:#0369a1;">Showing first ${MAX_DISPLAY_ROWS.toLocaleString()}</span>`;
+            $(`stats_${id}`).innerHTML = statsHtml;
 
-            // Table setup
             if (foundCount > 0) {
-                const headHtml = '<thead><tr>' + r.headers.map(h => `<th>${esc(h)}</th>`).join('') + '</tr></thead>';
-                const rowsHtml = '<tbody>' + r.rows.slice(0, MAX_DISPLAY_ROWS).map(row => {
-                    return '<tr>' + row.map((cell, idx) => {
-                        const isKey = r.headers[idx] === (cfg ? cfg.key : '');
-                        return `<td class="${isKey ? 'match-key' : ''}">${esc(cell)}</td>`;
-                    }).join('') + '</tr>';
-                }).join('') + '</tbody>';
-                $('resultsTable').innerHTML = headHtml + rowsHtml;
-                $('tableWrap').classList.remove('hide');
-                $('copyBtn').classList.remove('hide');
+                // Column letters header (A, B, C...)
+                const colLettersHtml = '<tr class="col-letters"><th></th>' + r.headers.map((_, i) => `<th>${getColLetter(i)}</th>`).join('') + '</tr>';
+                // Table header row
+                const headHtml = '<tr class="data-header"><th>#</th>' + r.headers.map(h => `<th>${esc(h)}</th>`).join('') + '</tr>';
+
+                // Table rows
+                const keyColName = globalCfg ? globalCfg.key : '';
+                const rowsHtml = r.rows.slice(0, MAX_DISPLAY_ROWS).map((row, rowIdx) => {
+                    const cells = row.map((cell, colIdx) => {
+                        const isKey = r.headers[colIdx] === keyColName;
+                        return `<td class="cell-data ${isKey ? 'cell-key' : ''}" onclick="copyCell(this)" title="Click to copy">${esc(cell)}</td>`;
+                    }).join('');
+                    return `<tr><td class="row-num">${rowIdx + 1}</td>${cells}</tr>`;
+                }).join('');
+
+                $(`grid_${id}`).innerHTML = '<thead>' + colLettersHtml + headHtml + '</thead><tbody>' + rowsHtml + '</tbody>';
+                $(`wrap_${id}`).classList.remove('hide');
+                $(`copyExcel_${id}`).classList.remove('hide');
+                $(`downloadCsv_${id}`).classList.remove('hide');
             } else {
-                $('tableWrap').classList.add('hide');
-                $('copyBtn').classList.add('hide');
+                $(`wrap_${id}`).classList.add('hide');
+                $(`copyExcel_${id}`).classList.add('hide');
+                $(`downloadCsv_${id}`).classList.add('hide');
             }
 
-            // Missing items
             if (missCount > 0) {
-                $('missChips').innerHTML = r.missing.map(m => `<span class="chip">${esc(m)}</span>`).join('');
-                $('missBox').classList.remove('hide');
+                $(`missChips_${id}`).innerHTML = r.missing.map(m => `<span class="chip">${esc(m)}</span>`).join('');
+                $(`missBox_${id}`).classList.remove('hide');
+                $(`copyMiss_${id}`).classList.remove('hide');
             } else {
-                $('missBox').classList.add('hide');
+                $(`missBox_${id}`).classList.add('hide');
+                $(`copyMiss_${id}`).classList.add('hide');
             }
         }
 
-        $('searchInput').oninput = () => {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(runSearch, 120);
-        };
+        function runAllSessions() {
+            sessions.forEach(sess => {
+                if (sess.input.trim()) runSessionSearch(sess.id);
+            });
+        }
 
-        $('copyBtn').onclick = async () => {
-            if (!lastResult) return;
-            const text = [lastResult.headers, ...lastResult.rows].map(row => row.join('\t')).join('\n');
+        // Easy Copy & Export Functions
+        function copyCell(cellElem) {
+            const val = cellElem.textContent.trim();
+            navigator.clipboard.writeText(val);
+            showToast(`Copied: ${val}`);
+        }
+
+        async function copySessionExcel(id) {
+            const sess = sessions.find(s => s.id === id);
+            if (!sess || !sess.result) return;
+            const text = [sess.result.headers, ...sess.result.rows].map(row => row.join('\t')).join('\n');
             await navigator.clipboard.writeText(text);
-            $('copyBtn').textContent = '✓ Copied!';
-            setTimeout(() => { $('copyBtn').textContent = '📋 Copy Results'; }, 1500);
-        };
+            showToast(`✓ Copied ${sess.title} Excel data to clipboard!`);
+        }
 
-        // Polling status
+        function downloadSessionCsv(id) {
+            const sess = sessions.find(s => s.id === id);
+            if (!sess || !sess.result) return;
+            const csvContent = [sess.result.headers, ...sess.result.rows]
+                .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))
+                .join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${sess.title.replace(/\s+/g, '_')}_Results.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(`📥 Downloaded ${sess.title} CSV file!`);
+        }
+
+        async function copySessionMissing(id) {
+            const sess = sessions.find(s => s.id === id);
+            if (!sess || !sess.result || !sess.result.missing.length) return;
+            await navigator.clipboard.writeText(sess.result.missing.join('\n'));
+            showToast(`✓ Copied ${sess.result.missing.length} missing items!`);
+        }
+
+        // Server status polling
         async function poll() {
             try {
                 const s = await api('/api/status');
-                cfg = s.cfg;
+                globalCfg = s.cfg;
 
                 const dot = $('statusDot');
                 const text = $('statusText');
 
                 if (!s.configured) {
                     dot.className = 'status-dot';
-                    text.textContent = 'No sheet selected';
-                    if ($('setupCard').classList.contains('hide') && $('mainCard').classList.contains('hide')) {
-                        showSetup(true);
-                    }
+                    text.textContent = 'No spreadsheet loaded';
+                    $('activeFileTag').textContent = 'No spreadsheet loaded';
+                    $('setupCard').classList.remove('hide');
                 } else {
                     if (s.loading) {
                         dot.className = 'status-dot loading';
-                        text.textContent = s.count ? 'Refreshing sheet…' : 'Loading spreadsheet…';
+                        text.textContent = 'Loading spreadsheet…';
                     } else if (s.error) {
                         dot.className = 'status-dot';
                         text.textContent = '⚠ ' + s.error;
                     } else {
                         dot.className = 'status-dot active';
-                        text.textContent = `${s.count.toLocaleString()} rows loaded · ${new Date(s.loaded_at * 1000).toLocaleTimeString()}`;
+                        text.textContent = `${s.count.toLocaleString()} rows ready`;
                     }
 
-                    $('activeFileTitle').textContent = '📄 ' + (s.cfg.path.split(/[\\/]/).pop() || s.cfg.path);
-                    $('activeKeySub').textContent = `Search Column: ${s.cfg.key}` + (s.cfg.sheet ? ` (Sheet: ${s.cfg.sheet})` : '');
-
-                    if ($('mainCard').classList.contains('hide') && $('setupCard').classList.contains('hide')) {
-                        showSetup(false);
-                    }
-
-                    if (s.version !== ver && s.count > 0) {
-                        ver = s.version;
-                        runSearch();
-                    }
+                    const filename = s.cfg.path.split(/[\\/]/).pop() || s.cfg.path;
+                    $('activeFileTag').textContent = `📄 ${filename} (${s.count.toLocaleString()} rows)`;
+                    $('activeKeyTag').textContent = `Search Column: ${s.cfg.key}` + (s.cfg.sheet ? ` (Sheet: ${s.cfg.sheet})` : '');
                 }
             } catch (e) {
                 $('statusDot').className = 'status-dot';
@@ -806,8 +1111,11 @@
             setTimeout(poll, 1500);
         }
 
+        // Initial setup
+        renderSessions();
         poll();
     </script>
 </body>
 
-</html>
+</html>
+
