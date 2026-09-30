@@ -1,7 +1,4 @@
-"""Local PIN lookup. Run: python app.py  ->  http://localhost:8000
-Loads an Excel/CSV sheet into an in-memory dict (O(1) lookups) and reloads
-automatically whenever the file changes on disk."""
-import csv, json, os, shutil, tempfile, threading, time, webbrowser
+import csv, json, os, shutil, tempfile, threading, time, webbrowser, subprocess, sys, socket
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from python_calamine import CalamineWorkbook  # fast Rust-based xlsx reader
@@ -11,6 +8,31 @@ CFG_FILE = os.path.join(HERE, "config.json")
 UPLOAD_DIR = os.path.join(HERE, "uploads")
 S = {"cfg": None, "headers": [], "index": {}, "sig": None, "version": 0,
      "loaded_at": None, "error": None, "loading": False}
+
+
+def open_window():
+    url = "http://localhost:8000"
+    candidates = []
+    for env_var in ["ProgramFiles", "ProgramFiles(x86)", "LocalAppData"]:
+        base = os.environ.get(env_var)
+        if base:
+            candidates.append(os.path.join(base, "Google", "Chrome", "Application", "chrome.exe"))
+
+    chrome_exe = None
+    for path in candidates:
+        if os.path.isfile(path):
+            chrome_exe = path
+            break
+
+    if chrome_exe:
+        try:
+            flags = getattr(subprocess, 'DETACHED_PROCESS', 0) | getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0)
+            subprocess.Popen([chrome_exe, url], creationflags=flags, close_fds=True)
+            return
+        except Exception:
+            pass
+
+    webbrowser.open(url)
 
 
 def norm(v):
@@ -277,6 +299,20 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    # Prevent AttributeError when running with pythonw.exe where stdout/stderr are None
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, "w")
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, "w")
+
+    # Try binding port 8000 first to detect if server is already running
+    try:
+        srv = ThreadingHTTPServer(("127.0.0.1", 8000), H)
+    except OSError:
+        # Port 8000 is already in use -> server is running! Open window & exit.
+        open_window()
+        sys.exit(0)
+
     if os.path.exists(CFG_FILE):
         try:
             S["cfg"] = json.load(open(CFG_FILE))
@@ -284,8 +320,8 @@ if __name__ == "__main__":
         except Exception:
             pass
     threading.Thread(target=watcher, daemon=True).start()
-    srv = ThreadingHTTPServer(("127.0.0.1", 8000), H)
-    print("Running at http://localhost:8000  (Ctrl+C to stop)")
-    webbrowser.open("http://localhost:8000")
+    
+    open_window()
     srv.serve_forever()
+
 
